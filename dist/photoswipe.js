@@ -1,6 +1,6 @@
-/*! PhotoSwipe - v4.1.3 - 2019-01-08
+/*! PhotoSwipe - v4.1.3 - 2021-03-17
 * http://photoswipe.com
-* Copyright (c) 2019 Dmitry Semenov; */
+* Copyright (c) 2021 Dmitry Semenov; */
 (function (root, factory) { 
 	if (typeof define === 'function' && define.amd) {
 		define(factory);
@@ -2846,8 +2846,16 @@ var _getItemAt,
 			item.loading = false;
 			item.loaded = true;
 
+			var needsSizeRecalculation = false;
+			if (!item.loadError && item.autoSize) {
+				item.w = img.naturalWidth;
+				item.h = img.naturalHeight;
+				item.autoSize = false;
+				needsSizeRecalculation = true;
+			}
+
 			if(item.loadComplete) {
-				item.loadComplete(item);
+				item.loadComplete(item, needsSizeRecalculation);
 			} else {
 				item.img = null; // no need to store image object
 			}
@@ -3000,7 +3008,12 @@ _registerModule('Controller', {
 
 		getItemAt: function(index) {
 			if (index >= 0) {
-				return _items[index] !== undefined ? _items[index] : false;
+				var item = _items[index] !== undefined ? _items[index] : false;
+				if(item && item.autoSize) {
+					if(item.w == null) item.w = 0;
+					if(item.h == null) item.h = 0;
+				}
+				return item;
 			}
 			return false;
 		},
@@ -3064,7 +3077,7 @@ _registerModule('Controller', {
 			
 			if(item.src && !item.loadError && !item.loaded) {
 
-				item.loadComplete = function(item) {
+				item.loadComplete = function(item, needsSizeRecalculation) {
 
 					// gallery closed before image finished loading
 					if(!_isOpen) {
@@ -3083,6 +3096,14 @@ _registerModule('Controller', {
 								self.updateCurrZoomItem();
 							}
 							return;
+						}
+						if (needsSizeRecalculation) {
+							_calculateItemSize(item, _viewportSize);
+							_applyZoomPanToItem(item);
+							if(holder.index === _currentItemIndex) {
+								// recalculate dimensions
+								self.updateCurrZoomItem();
+							}
 						}
 						if( !item.imageAppended ) {
 							if(_features.transform && (_mainScrollAnimating || _initialZoomRunning) ) {

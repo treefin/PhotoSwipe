@@ -10,6 +10,8 @@ module.exports = function(grunt) {
 
   'use strict';
 
+  const sass = require('node-sass');
+
   var jekyllConfig = "isLocal : false \r\n"+
       "permalink: /:title/ \r\n"+
       "exclude: ['.json', '.rvmrc', '.rbenv-version', 'README.md', 'Rakefile'," +
@@ -19,7 +21,7 @@ module.exports = function(grunt) {
       "auto: true \r\n"+
       "pswpversion: <%= pkg.version %> \r\n"+
       "siteversion: 1.0.4 \r\n"+
-      "markdown: redcarpet \r\n"+
+      "markdown: kramdown \r\n"+
       "kramdown: \r\n"+
       "  input: GFM \r\n";
 
@@ -43,6 +45,10 @@ module.exports = function(grunt) {
     },
     
     sass: {                            
+      options: { 
+        implementation: sass, 
+        sourceMap: true 
+      }, 
       dist: {                      
         files: {      
           'dist/photoswipe.css': 'src/css/main.scss',
